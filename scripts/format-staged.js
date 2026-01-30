@@ -64,7 +64,7 @@ function resolveOxfmtCommand(repoRoot) {
     return { command: local, args: [] };
   }
 
-  const result = spawnSync("oxfmt", ["--version"], { stdio: "ignore" });
+  const result = spawnSync("oxfmt", ["--version"], { stdio: "ignore", shell: process.platform === "win32" });
   if (result.status === 0) {
     return { command: "oxfmt", args: [] };
   }
