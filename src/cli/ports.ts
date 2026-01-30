@@ -30,6 +30,11 @@ export function parseLsofOutput(output: string): PortProcess[] {
 }
 
 export function listPortListeners(port: number): PortProcess[] {
+  if (process.platform === "win32") {
+    const result = listPortListenersWindows(port);
+    console.log("listPortListenersWindows", result);
+    return result;
+  }
   try {
     const lsof = resolveLsofCommandSync();
     const out = execFileSync(lsof, ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-FpFc"], {
@@ -40,10 +45,42 @@ export function listPortListeners(port: number): PortProcess[] {
     const status = (err as { status?: number }).status;
     const code = (err as { code?: string }).code;
     if (code === "ENOENT") {
-      throw new Error("lsof not found; required for --force");
+      throw new Error("lsof not found; required for --force (on Windows, use an admin shell)");
     }
     if (status === 1) return []; // no listeners
     throw err instanceof Error ? err : new Error(String(err));
+  }
+}
+
+function listPortListenersWindows(port: number): PortProcess[] {
+  try {
+    // netstat -ano -p tcp output:
+    //   TCP    0.0.0.0:18789          0.0.0.0:0              LISTENING       15072
+    const out = execFileSync("netstat", ["-ano", "-p", "tcp"], {
+      encoding: "utf-8",
+    });
+    const portToken = `:${port}`;
+    const results: PortProcess[] = [];
+    for (const rawLine of out.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || !line.toLowerCase().includes("listening") || !line.includes(portToken)) {
+        continue;
+      }
+      const parts = line.split(/\s+/);
+      if (parts.length < 5) continue;
+      const localAddr = parts[1];
+      if (localAddr?.endsWith(portToken)) {
+        const pidRaw = parts.at(-1);
+        const pid = pidRaw ? Number.parseInt(pidRaw, 10) : NaN;
+        if (Number.isFinite(pid)) {
+          // command name is optional, listPortListeners usually just needs pid for force-killing.
+          results.push({ pid });
+        }
+      }
+    }
+    return results;
+  } catch {
+    return [];
   }
 }
 

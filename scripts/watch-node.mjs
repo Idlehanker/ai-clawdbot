@@ -8,7 +8,11 @@ const cwd = process.cwd();
 const compiler = env.CLAWDBOT_TS_COMPILER === "tsc" ? "tsc" : "tsgo";
 const projectArgs = ["--project", "tsconfig.json"];
 
-const initialBuild = spawnSync("pnpm", ["exec", compiler, ...projectArgs], {
+const pnpmCmd = process.platform === "win32" ? "cmd.exe" : "pnpm";
+const getPnpmArgs = (pnpmArgs) =>
+  process.platform === "win32" ? ["/d", "/s", "/c", "pnpm", ...pnpmArgs] : pnpmArgs;
+
+const initialBuild = spawnSync(pnpmCmd, getPnpmArgs(["exec", compiler, ...projectArgs]), {
   cwd,
   env,
   stdio: "inherit",
@@ -18,12 +22,13 @@ if (initialBuild.status !== 0) {
   process.exit(initialBuild.status ?? 1);
 }
 
+
 const watchArgs =
   compiler === "tsc"
     ? [...projectArgs, "--watch", "--preserveWatchOutput"]
     : [...projectArgs, "--watch"];
 
-const compilerProcess = spawn("pnpm", ["exec", compiler, ...watchArgs], {
+const compilerProcess = spawn(pnpmCmd, getPnpmArgs(["exec", compiler, ...watchArgs]), {
   cwd,
   env,
   stdio: "inherit",
