@@ -42,7 +42,7 @@ export function registerPreActionHooks(program: Command, programVersion: string)
     await ensureConfigReady({ runtime: defaultRuntime, commandPath });
     // Load plugins for commands that need channel access
     if (PLUGIN_REQUIRED_COMMANDS.has(commandPath[0])) {
-      ensurePluginRegistryLoaded();
+      await ensurePluginRegistryLoaded();
     }
   });
 }

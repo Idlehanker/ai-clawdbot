@@ -34,12 +34,12 @@ function isOptionalToolAllowed(params: {
   return params.allowlist.has("group:plugins");
 }
 
-export function resolvePluginTools(params: {
+export async function resolvePluginTools(params: {
   context: ClawdbotPluginToolContext;
   existingToolNames?: Set<string>;
   toolAllowlist?: string[];
-}): AnyAgentTool[] {
-  const registry = loadClawdbotPlugins({
+}): Promise<AnyAgentTool[]> {
+  const registry = await loadClawdbotPlugins({
     config: params.context.config,
     workspaceDir: params.context.workspaceDir,
     logger: {

@@ -435,7 +435,7 @@ export async function setupChannels(
       return false;
     }
     const workspaceDir = resolveAgentWorkspaceDir(next, resolveDefaultAgentId(next));
-    reloadOnboardingPluginRegistry({
+    await reloadOnboardingPluginRegistry({
       cfg: next,
       runtime,
       workspaceDir,
@@ -553,7 +553,7 @@ export async function setupChannels(
       });
       next = result.cfg;
       if (!result.installed) return;
-      reloadOnboardingPluginRegistry({
+      await reloadOnboardingPluginRegistry({
         cfg: next,
         runtime,
         workspaceDir,

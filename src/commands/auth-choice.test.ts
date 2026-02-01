@@ -13,7 +13,7 @@ vi.mock("../providers/github-copilot-auth.js", () => ({
   githubCopilotLoginCommand: vi.fn(async () => {}),
 }));
 
-const resolvePluginProviders = vi.hoisted(() => vi.fn(() => []));
+const resolvePluginProviders = vi.hoisted(() => vi.fn<() => Promise<any[]>>(async () => []));
 vi.mock("../plugins/providers.js", () => ({
   resolvePluginProviders,
 }));
@@ -498,7 +498,7 @@ describe("applyAuthChoice", () => {
     process.env.CLAWDBOT_AGENT_DIR = path.join(tempStateDir, "agent");
     process.env.PI_CODING_AGENT_DIR = process.env.CLAWDBOT_AGENT_DIR;
 
-    resolvePluginProviders.mockReturnValue([
+    resolvePluginProviders.mockResolvedValue([
       {
         id: "qwen-portal",
         label: "Qwen",

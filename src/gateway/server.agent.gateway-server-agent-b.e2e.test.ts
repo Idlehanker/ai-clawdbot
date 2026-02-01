@@ -45,6 +45,8 @@ const registryState = vi.hoisted(() => ({
   registry: {
     plugins: [],
     tools: [],
+    hooks: [],
+    typedHooks: [],
     channels: [],
     providers: [],
     gatewayHandlers: {},
@@ -52,6 +54,7 @@ const registryState = vi.hoisted(() => ({
     httpRoutes: [],
     cliRegistrars: [],
     services: [],
+    commands: [],
     diagnostics: [],
   } as PluginRegistry,
 }));
@@ -59,7 +62,7 @@ const registryState = vi.hoisted(() => ({
 vi.mock("./server-plugins.js", async () => {
   const { setActivePluginRegistry } = await import("../plugins/runtime.js");
   return {
-    loadGatewayPlugins: (params: { baseMethods: string[] }) => {
+    loadGatewayPlugins: async (params: { baseMethods: string[] }) => {
       setActivePluginRegistry(registryState.registry);
       return {
         pluginRegistry: registryState.registry,
@@ -75,6 +78,8 @@ const _BASE_IMAGE_PNG =
 const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry => ({
   plugins: [],
   tools: [],
+  hooks: [],
+  typedHooks: [],
   channels,
   providers: [],
   gatewayHandlers: {},
@@ -82,6 +87,7 @@ const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry =>
   httpRoutes: [],
   cliRegistrars: [],
   services: [],
+  commands: [],
   diagnostics: [],
 });
 
@@ -295,11 +301,11 @@ describe("gateway server agent", () => {
   test("agent ack response then final response", { timeout: 8000 }, async () => {
     const ackP = onceMessage(
       ws,
-      (o) => o.type === "res" && o.id === "ag1" && o.payload?.status === "accepted",
+      (o: any) => o.type === "res" && o.id === "ag1" && o.payload?.status === "accepted",
     );
     const finalP = onceMessage(
       ws,
-      (o) => o.type === "res" && o.id === "ag1" && o.payload?.status !== "accepted",
+      (o: any) => o.type === "res" && o.id === "ag1" && o.payload?.status !== "accepted",
     );
     ws.send(
       JSON.stringify({
@@ -310,8 +316,8 @@ describe("gateway server agent", () => {
       }),
     );
 
-    const ack = await ackP;
-    const final = await finalP;
+    const ack = (await ackP) as any;
+    const final = (await finalP) as any;
     expect(ack.payload.runId).toBeDefined();
     expect(final.payload.runId).toBe(ack.payload.runId);
     expect(final.payload.status).toBe("ok");
@@ -320,7 +326,7 @@ describe("gateway server agent", () => {
   test("agent dedupes by idempotencyKey after completion", async () => {
     const firstFinalP = onceMessage(
       ws,
-      (o) => o.type === "res" && o.id === "ag1" && o.payload?.status !== "accepted",
+      (o: any) => o.type === "res" && o.id === "ag1" && o.payload?.status !== "accepted",
     );
     ws.send(
       JSON.stringify({
@@ -332,7 +338,7 @@ describe("gateway server agent", () => {
     );
     const firstFinal = await firstFinalP;
 
-    const secondP = onceMessage(ws, (o) => o.type === "res" && o.id === "ag2");
+    const secondP = onceMessage(ws, (o: any) => o.type === "res" && o.id === "ag2");
     ws.send(
       JSON.stringify({
         type: "req",
@@ -341,8 +347,8 @@ describe("gateway server agent", () => {
         params: { message: "hi again", idempotencyKey: "same-agent" },
       }),
     );
-    const second = await secondP;
-    expect(second.payload).toEqual(firstFinal.payload);
+    const second = (await secondP) as any;
+    expect(second.payload).toEqual((firstFinal as any).payload);
   });
 
   test("agent dedupe survives reconnect", { timeout: 60_000 }, async () => {
@@ -360,7 +366,7 @@ describe("gateway server agent", () => {
     const ws1 = await dial();
     const final1P = onceMessage(
       ws1,
-      (o) => o.type === "res" && o.id === "ag1" && o.payload?.status !== "accepted",
+      (o: any) => o.type === "res" && o.id === "ag1" && o.payload?.status !== "accepted",
       6000,
     );
     ws1.send(
@@ -377,7 +383,7 @@ describe("gateway server agent", () => {
     const ws2 = await dial();
     const final2P = onceMessage(
       ws2,
-      (o) => o.type === "res" && o.id === "ag2" && o.payload?.status !== "accepted",
+      (o: any) => o.type === "res" && o.id === "ag2" && o.payload?.status !== "accepted",
       6000,
     );
     ws2.send(
@@ -388,8 +394,8 @@ describe("gateway server agent", () => {
         params: { message: "hi again", idempotencyKey: idem },
       }),
     );
-    const res = await final2P;
-    expect(res.payload).toEqual(final1.payload);
+    const res = (await final2P) as any;
+    expect(res.payload).toEqual((final1 as any).payload);
     ws2.close();
     await server.close();
   });
@@ -421,7 +427,7 @@ describe("gateway server agent", () => {
 
     const finalChatP = onceMessage(
       webchatWs,
-      (o) => {
+      (o: any) => {
         if (o.type !== "event" || o.event !== "chat") return false;
         const payload = o.payload as { state?: unknown; runId?: unknown } | undefined;
         return payload?.state === "final" && payload.runId === "run-auto-1";
@@ -440,7 +446,7 @@ describe("gateway server agent", () => {
       data: { phase: "end" },
     });
 
-    const evt = await finalChatP;
+    const evt = (await finalChatP) as any;
     const payload =
       evt.payload && typeof evt.payload === "object"
         ? (evt.payload as Record<string, unknown>)

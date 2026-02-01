@@ -60,7 +60,7 @@ afterEach(() => {
 });
 
 describe("loadClawdbotPlugins", () => {
-  it("disables bundled plugins by default", () => {
+  it("disables bundled plugins by default", async () => {
     const bundledDir = makeTempDir();
     writePlugin({
       id: "bundled",
@@ -70,7 +70,7 @@ describe("loadClawdbotPlugins", () => {
     });
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = bundledDir;
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -82,7 +82,7 @@ describe("loadClawdbotPlugins", () => {
     const bundled = registry.plugins.find((entry) => entry.id === "bundled");
     expect(bundled?.status).toBe("disabled");
 
-    const enabledRegistry = loadClawdbotPlugins({
+    const enabledRegistry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -98,7 +98,7 @@ describe("loadClawdbotPlugins", () => {
     expect(enabled?.status).toBe("loaded");
   });
 
-  it("loads bundled telegram plugin when enabled", () => {
+  it("loads bundled telegram plugin when enabled", async () => {
     const bundledDir = makeTempDir();
     writePlugin({
       id: "telegram",
@@ -127,7 +127,7 @@ describe("loadClawdbotPlugins", () => {
     });
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = bundledDir;
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -144,7 +144,7 @@ describe("loadClawdbotPlugins", () => {
     expect(registry.channels.some((entry) => entry.plugin.id === "telegram")).toBe(true);
   });
 
-  it("enables bundled memory plugin when selected by slot", () => {
+  it("enables bundled memory plugin when selected by slot", async () => {
     const bundledDir = makeTempDir();
     writePlugin({
       id: "memory-core",
@@ -154,7 +154,7 @@ describe("loadClawdbotPlugins", () => {
     });
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = bundledDir;
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -169,7 +169,7 @@ describe("loadClawdbotPlugins", () => {
     expect(memory?.status).toBe("loaded");
   });
 
-  it("preserves package.json metadata for bundled memory plugins", () => {
+  it("preserves package.json metadata for bundled memory plugins", async () => {
     const bundledDir = makeTempDir();
     const pluginDir = path.join(bundledDir, "memory-core");
     fs.mkdirSync(pluginDir, { recursive: true });
@@ -193,7 +193,7 @@ describe("loadClawdbotPlugins", () => {
 
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = bundledDir;
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -210,14 +210,14 @@ describe("loadClawdbotPlugins", () => {
     expect(memory?.name).toBe("Memory (Core)");
     expect(memory?.version).toBe("1.2.3");
   });
-  it("loads plugins from config paths", () => {
+  it("loads plugins from config paths", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "allowed",
       body: `export default { id: "allowed", register(api) { api.registerGatewayMethod("allowed.ping", ({ respond }) => respond(true, { ok: true })); } };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       workspaceDir: plugin.dir,
       config: {
@@ -233,14 +233,14 @@ describe("loadClawdbotPlugins", () => {
     expect(Object.keys(registry.gatewayHandlers)).toContain("allowed.ping");
   });
 
-  it("denylist disables plugins even if allowed", () => {
+  it("denylist disables plugins even if allowed", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "blocked",
       body: `export default { id: "blocked", register() {} };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       workspaceDir: plugin.dir,
       config: {
@@ -256,14 +256,14 @@ describe("loadClawdbotPlugins", () => {
     expect(blocked?.status).toBe("disabled");
   });
 
-  it("fails fast on invalid plugin config", () => {
+  it("fails fast on invalid plugin config", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "configurable",
       body: `export default { id: "configurable", register() {} };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       workspaceDir: plugin.dir,
       config: {
@@ -283,7 +283,7 @@ describe("loadClawdbotPlugins", () => {
     expect(registry.diagnostics.some((d) => d.level === "error")).toBe(true);
   });
 
-  it("registers channel plugins", () => {
+  it("registers channel plugins", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "channel-demo",
@@ -309,7 +309,7 @@ describe("loadClawdbotPlugins", () => {
 } };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       workspaceDir: plugin.dir,
       config: {
@@ -324,7 +324,7 @@ describe("loadClawdbotPlugins", () => {
     expect(channel).toBeDefined();
   });
 
-  it("registers http handlers", () => {
+  it("registers http handlers", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "http-demo",
@@ -333,7 +333,7 @@ describe("loadClawdbotPlugins", () => {
 } };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       workspaceDir: plugin.dir,
       config: {
@@ -350,7 +350,7 @@ describe("loadClawdbotPlugins", () => {
     expect(httpPlugin?.httpHandlers).toBe(1);
   });
 
-  it("registers http routes", () => {
+  it("registers http routes", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "http-route-demo",
@@ -359,7 +359,7 @@ describe("loadClawdbotPlugins", () => {
 } };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       workspaceDir: plugin.dir,
       config: {
@@ -377,14 +377,14 @@ describe("loadClawdbotPlugins", () => {
     expect(httpPlugin?.httpHandlers).toBe(1);
   });
 
-  it("respects explicit disable in config", () => {
+  it("respects explicit disable in config", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const plugin = writePlugin({
       id: "config-disable",
       body: `export default { id: "config-disable", register() {} };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -400,7 +400,7 @@ describe("loadClawdbotPlugins", () => {
     expect(disabled?.status).toBe("disabled");
   });
 
-  it("enforces memory slot selection", () => {
+  it("enforces memory slot selection", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const memoryA = writePlugin({
       id: "memory-a",
@@ -411,7 +411,7 @@ describe("loadClawdbotPlugins", () => {
       body: `export default { id: "memory-b", kind: "memory", register() {} };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -427,14 +427,14 @@ describe("loadClawdbotPlugins", () => {
     expect(a?.status).toBe("disabled");
   });
 
-  it("disables memory plugins when slot is none", () => {
+  it("disables memory plugins when slot is none", async () => {
     process.env.CLAWDBOT_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
     const memory = writePlugin({
       id: "memory-off",
       body: `export default { id: "memory-off", kind: "memory", register() {} };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {
@@ -448,7 +448,7 @@ describe("loadClawdbotPlugins", () => {
     expect(entry?.status).toBe("disabled");
   });
 
-  it("prefers higher-precedence plugins with the same id", () => {
+  it("prefers higher-precedence plugins with the same id", async () => {
     const bundledDir = makeTempDir();
     writePlugin({
       id: "shadow",
@@ -463,7 +463,7 @@ describe("loadClawdbotPlugins", () => {
       body: `export default { id: "shadow", register() {} };`,
     });
 
-    const registry = loadClawdbotPlugins({
+    const registry = await loadClawdbotPlugins({
       cache: false,
       config: {
         plugins: {

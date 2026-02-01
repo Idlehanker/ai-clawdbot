@@ -17,6 +17,8 @@ const registryState = vi.hoisted(() => ({
   registry: {
     plugins: [],
     tools: [],
+    hooks: [],
+    typedHooks: [],
     channels: [],
     providers: [],
     gatewayHandlers: {},
@@ -24,6 +26,7 @@ const registryState = vi.hoisted(() => ({
     httpRoutes: [],
     cliRegistrars: [],
     services: [],
+    commands: [],
     diagnostics: [],
   } as PluginRegistry,
 }));
@@ -31,7 +34,7 @@ const registryState = vi.hoisted(() => ({
 vi.mock("./server-plugins.js", async () => {
   const { setActivePluginRegistry } = await import("../plugins/runtime.js");
   return {
-    loadGatewayPlugins: (params: { baseMethods: string[] }) => {
+    loadGatewayPlugins: async (params: { baseMethods: string[] }) => {
       setActivePluginRegistry(registryState.registry);
       return {
         pluginRegistry: registryState.registry,
@@ -44,6 +47,8 @@ vi.mock("./server-plugins.js", async () => {
 const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry => ({
   plugins: [],
   tools: [],
+  hooks: [],
+  typedHooks: [],
   channels,
   providers: [],
   gatewayHandlers: {},
@@ -51,6 +56,7 @@ const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry =>
   httpRoutes: [],
   cliRegistrars: [],
   services: [],
+  commands: [],
   diagnostics: [],
 });
 
@@ -175,13 +181,21 @@ describe("gateway server channels", () => {
     const telegram = res.payload?.channels?.telegram;
     const signal = res.payload?.channels?.signal;
     expect(res.payload?.channels?.whatsapp).toBeTruthy();
-    expect(telegram?.configured).toBe(false);
-    expect(telegram?.tokenSource).toBe("none");
-    expect(telegram?.probe).toBeUndefined();
-    expect(telegram?.lastProbeAt).toBeNull();
-    expect(signal?.configured).toBe(false);
-    expect(signal?.probe).toBeUndefined();
-    expect(signal?.lastProbeAt).toBeNull();
+    if (telegram && "configured" in telegram) {
+      expect(telegram.configured).toBe(false);
+      expect(telegram.tokenSource).toBe("none");
+      expect(telegram.probe).toBeUndefined();
+      expect(telegram.lastProbeAt).toBeNull();
+    } else {
+      throw new Error("Telegram status missing or invalid type");
+    }
+    if (signal && "configured" in signal) {
+      expect(signal.configured).toBe(false);
+      expect(signal.probe).toBeUndefined();
+      expect(signal.lastProbeAt).toBeNull();
+    } else {
+      throw new Error("Signal status missing or invalid type");
+    }
   });
 
   test("channels.logout reports no session when missing", async () => {

@@ -4,11 +4,11 @@ import type { ProviderPlugin } from "./types.js";
 
 const log = createSubsystemLogger("plugins");
 
-export function resolvePluginProviders(params: {
+export async function resolvePluginProviders(params: {
   config?: PluginLoadOptions["config"];
   workspaceDir?: string;
-}): ProviderPlugin[] {
-  const registry = loadClawdbotPlugins({
+}): Promise<ProviderPlugin[]> {
+  const registry = await loadClawdbotPlugins({
     config: params.config,
     workspaceDir: params.workspaceDir,
     logger: {

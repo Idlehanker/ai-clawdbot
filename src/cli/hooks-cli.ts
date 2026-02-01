@@ -57,10 +57,10 @@ function mergeHookEntries(pluginEntries: HookEntry[], workspaceEntries: HookEntr
   return Array.from(merged.values());
 }
 
-function buildHooksReport(config: ClawdbotConfig): HookStatusReport {
+async function buildHooksReport(config: ClawdbotConfig): Promise<HookStatusReport> {
   const workspaceDir = resolveAgentWorkspaceDir(config, resolveDefaultAgentId(config));
   const workspaceEntries = loadWorkspaceHookEntries(workspaceDir, { config });
-  const pluginReport = buildPluginStatusReport({ config, workspaceDir });
+  const pluginReport = await buildPluginStatusReport({ config, workspaceDir });
   const pluginEntries = pluginReport.hooks.map((hook) => hook.entry);
   const entries = mergeHookEntries(pluginEntries, workspaceEntries);
   return buildWorkspaceHookStatus(workspaceDir, { config, entries });
@@ -342,7 +342,7 @@ export function formatHooksCheck(report: HookStatusReport, opts: HooksCheckOptio
 
 export async function enableHook(hookName: string): Promise<void> {
   const config = loadConfig();
-  const report = buildHooksReport(config);
+  const report = await buildHooksReport(config);
   const hook = report.hooks.find((h) => h.name === hookName);
 
   if (!hook) {
@@ -383,7 +383,7 @@ export async function enableHook(hookName: string): Promise<void> {
 
 export async function disableHook(hookName: string): Promise<void> {
   const config = loadConfig();
-  const report = buildHooksReport(config);
+  const report = await buildHooksReport(config);
   const hook = report.hooks.find((h) => h.name === hookName);
 
   if (!hook) {
@@ -436,7 +436,7 @@ export function registerHooksCli(program: Command): void {
     .action(async (opts) => {
       try {
         const config = loadConfig();
-        const report = buildHooksReport(config);
+        const report = await buildHooksReport(config);
         defaultRuntime.log(formatHooksList(report, opts));
       } catch (err) {
         defaultRuntime.error(
@@ -453,7 +453,7 @@ export function registerHooksCli(program: Command): void {
     .action(async (name, opts) => {
       try {
         const config = loadConfig();
-        const report = buildHooksReport(config);
+        const report = await buildHooksReport(config);
         defaultRuntime.log(formatHookInfo(report, name, opts));
       } catch (err) {
         defaultRuntime.error(
@@ -470,7 +470,7 @@ export function registerHooksCli(program: Command): void {
     .action(async (opts) => {
       try {
         const config = loadConfig();
-        const report = buildHooksReport(config);
+        const report = await buildHooksReport(config);
         defaultRuntime.log(formatHooksCheck(report, opts));
       } catch (err) {
         defaultRuntime.error(
@@ -826,7 +826,7 @@ export function registerHooksCli(program: Command): void {
   hooks.action(async () => {
     try {
       const config = loadConfig();
-      const report = buildHooksReport(config);
+      const report = await buildHooksReport(config);
       defaultRuntime.log(formatHooksList(report, {}));
     } catch (err) {
       defaultRuntime.error(

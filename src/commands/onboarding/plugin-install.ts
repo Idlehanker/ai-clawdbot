@@ -187,15 +187,15 @@ export async function ensureOnboardingPluginInstalled(params: {
   return { cfg: next, installed: false };
 }
 
-export function reloadOnboardingPluginRegistry(params: {
+export async function reloadOnboardingPluginRegistry(params: {
   cfg: ClawdbotConfig;
   runtime: RuntimeEnv;
   workspaceDir?: string;
-}): void {
+}): Promise<void> {
   const workspaceDir =
     params.workspaceDir ?? resolveAgentWorkspaceDir(params.cfg, resolveDefaultAgentId(params.cfg));
   const log = createSubsystemLogger("plugins");
-  loadClawdbotPlugins({
+  await loadClawdbotPlugins({
     config: params.cfg,
     workspaceDir,
     cache: false,

@@ -25,7 +25,7 @@ import {
 
 export async function startGatewaySidecars(params: {
   cfg: ReturnType<typeof loadConfig>;
-  pluginRegistry: ReturnType<typeof loadClawdbotPlugins>;
+  pluginRegistry: Awaited<ReturnType<typeof loadClawdbotPlugins>>;
   defaultWorkspaceDir: string;
   deps: CliDeps;
   startChannels: () => Promise<void>;

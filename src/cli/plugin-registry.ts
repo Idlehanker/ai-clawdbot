@@ -7,7 +7,7 @@ import type { PluginLogger } from "../plugins/types.js";
 const log = createSubsystemLogger("plugins");
 let pluginRegistryLoaded = false;
 
-export function ensurePluginRegistryLoaded(): void {
+export async function ensurePluginRegistryLoaded(): Promise<void> {
   if (pluginRegistryLoaded) return;
   const config = loadConfig();
   const workspaceDir = resolveAgentWorkspaceDir(config, resolveDefaultAgentId(config));
@@ -17,7 +17,7 @@ export function ensurePluginRegistryLoaded(): void {
     error: (msg) => log.error(msg),
     debug: (msg) => log.debug(msg),
   };
-  loadClawdbotPlugins({
+  await loadClawdbotPlugins({
     config,
     workspaceDir,
     logger,

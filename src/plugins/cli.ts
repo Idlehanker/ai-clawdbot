@@ -9,7 +9,7 @@ import type { PluginLogger } from "./types.js";
 
 const log = createSubsystemLogger("plugins");
 
-export function registerPluginCliCommands(program: Command, cfg?: ClawdbotConfig) {
+export async function registerPluginCliCommands(program: Command, cfg?: ClawdbotConfig) {
   const config = cfg ?? loadConfig();
   const workspaceDir = resolveAgentWorkspaceDir(config, resolveDefaultAgentId(config));
   const logger: PluginLogger = {
@@ -18,7 +18,7 @@ export function registerPluginCliCommands(program: Command, cfg?: ClawdbotConfig
     error: (msg: string) => log.error(msg),
     debug: (msg: string) => log.debug(msg),
   };
-  const registry = loadClawdbotPlugins({
+  const registry = await loadClawdbotPlugins({
     config,
     workspaceDir,
     logger,

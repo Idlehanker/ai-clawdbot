@@ -256,7 +256,7 @@ export async function doctorCommand(
     }
   }
 
-  noteWorkspaceStatus(cfg);
+  await noteWorkspaceStatus(cfg);
 
   const { healthOk } = await checkGatewayHealth({
     runtime,

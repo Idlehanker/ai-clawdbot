@@ -21,11 +21,12 @@ const createRegistry = (diagnostics: PluginDiagnostic[]): PluginRegistry => ({
   httpRoutes: [],
   cliRegistrars: [],
   services: [],
+  commands: [],
   diagnostics,
 });
 
 describe("loadGatewayPlugins", () => {
-  test("logs plugin errors with details", () => {
+  test("logs plugin errors with details", async () => {
     const diagnostics: PluginDiagnostic[] = [
       {
         level: "error",
@@ -34,7 +35,7 @@ describe("loadGatewayPlugins", () => {
         message: "failed to load plugin: boom",
       },
     ];
-    loadClawdbotPlugins.mockReturnValue(createRegistry(diagnostics));
+    loadClawdbotPlugins.mockResolvedValue(createRegistry(diagnostics));
 
     const log = {
       info: vi.fn(),
@@ -43,7 +44,7 @@ describe("loadGatewayPlugins", () => {
       debug: vi.fn(),
     };
 
-    loadGatewayPlugins({
+    await loadGatewayPlugins({
       cfg: {},
       workspaceDir: "/tmp",
       log,

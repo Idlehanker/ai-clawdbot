@@ -329,7 +329,7 @@ export async function modelsAuthLoginCommand(opts: LoginOptions, runtime: Runtim
   const workspaceDir =
     resolveAgentWorkspaceDir(config, defaultAgentId) ?? resolveDefaultAgentWorkspaceDir();
 
-  const providers = resolvePluginProviders({ config, workspaceDir });
+  const providers = await resolvePluginProviders({ config, workspaceDir });
   if (providers.length === 0) {
     throw new Error(
       `No provider plugins found. Install one via \`${formatCliCommand("clawdbot plugins install")}\`.`,

@@ -65,9 +65,9 @@ export default { register(api) {
 } }
 `;
 
-  it("skips optional tools without explicit allowlist", () => {
+  it("skips optional tools without explicit allowlist", async () => {
     const plugin = writePlugin({ id: "optional-demo", body: pluginBody });
-    const tools = resolvePluginTools({
+    const tools = await resolvePluginTools({
       context: {
         config: {
           plugins: {
@@ -81,9 +81,9 @@ export default { register(api) {
     expect(tools).toHaveLength(0);
   });
 
-  it("allows optional tools by name", () => {
+  it("allows optional tools by name", async () => {
     const plugin = writePlugin({ id: "optional-demo", body: pluginBody });
-    const tools = resolvePluginTools({
+    const tools = await resolvePluginTools({
       context: {
         config: {
           plugins: {
@@ -98,9 +98,9 @@ export default { register(api) {
     expect(tools.map((tool) => tool.name)).toContain("optional_tool");
   });
 
-  it("allows optional tools via plugin groups", () => {
+  it("allows optional tools via plugin groups", async () => {
     const plugin = writePlugin({ id: "optional-demo", body: pluginBody });
-    const toolsAll = resolvePluginTools({
+    const toolsAll = await resolvePluginTools({
       context: {
         config: {
           plugins: {
@@ -114,7 +114,7 @@ export default { register(api) {
     });
     expect(toolsAll.map((tool) => tool.name)).toContain("optional_tool");
 
-    const toolsPlugin = resolvePluginTools({
+    const toolsPlugin = await resolvePluginTools({
       context: {
         config: {
           plugins: {
@@ -129,9 +129,9 @@ export default { register(api) {
     expect(toolsPlugin.map((tool) => tool.name)).toContain("optional_tool");
   });
 
-  it("rejects plugin id collisions with core tool names", () => {
+  it("rejects plugin id collisions with core tool names", async () => {
     const plugin = writePlugin({ id: "message", body: pluginBody });
-    const tools = resolvePluginTools({
+    const tools = await resolvePluginTools({
       context: {
         config: {
           plugins: {
@@ -147,7 +147,7 @@ export default { register(api) {
     expect(tools).toHaveLength(0);
   });
 
-  it("skips conflicting tool names but keeps other tools", () => {
+  it("skips conflicting tool names but keeps other tools", async () => {
     const plugin = writePlugin({
       id: "multi",
       body: `
@@ -172,7 +172,7 @@ export default { register(api) {
 `,
     });
 
-    const tools = resolvePluginTools({
+    const tools = await resolvePluginTools({
       context: {
         config: {
           plugins: {

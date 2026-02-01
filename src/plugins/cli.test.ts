@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./loader.js", () => ({
-  loadClawdbotPlugins: () => ({
+  loadClawdbotPlugins: async () => ({
     cliRegistrars: [
       {
         pluginId: "memory-core",
@@ -33,11 +33,11 @@ describe("registerPluginCliCommands", () => {
     mocks.otherRegister.mockClear();
   });
 
-  it("skips plugin CLI registrars when commands already exist", () => {
+  it("skips plugin CLI registrars when commands already exist", async () => {
     const program = new Command();
     program.command("memory");
 
-    registerPluginCliCommands(program, {} as any);
+    await registerPluginCliCommands(program, {} as any);
 
     expect(mocks.memoryRegister).not.toHaveBeenCalled();
     expect(mocks.otherRegister).toHaveBeenCalledTimes(1);

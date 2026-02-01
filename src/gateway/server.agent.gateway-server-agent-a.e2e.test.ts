@@ -36,6 +36,8 @@ const registryState = vi.hoisted(() => ({
   registry: {
     plugins: [],
     tools: [],
+    hooks: [],
+    typedHooks: [],
     channels: [],
     providers: [],
     gatewayHandlers: {},
@@ -43,6 +45,7 @@ const registryState = vi.hoisted(() => ({
     httpRoutes: [],
     cliRegistrars: [],
     services: [],
+    commands: [],
     diagnostics: [],
   } as PluginRegistry,
 }));
@@ -50,7 +53,7 @@ const registryState = vi.hoisted(() => ({
 vi.mock("./server-plugins.js", async () => {
   const { setActivePluginRegistry } = await import("../plugins/runtime.js");
   return {
-    loadGatewayPlugins: (params: { baseMethods: string[] }) => {
+    loadGatewayPlugins: async (params: { baseMethods: string[] }) => {
       setActivePluginRegistry(registryState.registry);
       return {
         pluginRegistry: registryState.registry,
@@ -78,6 +81,8 @@ function expectChannels(call: Record<string, unknown>, channel: string) {
 const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry => ({
   plugins: [],
   tools: [],
+  hooks: [],
+  typedHooks: [],
   channels,
   providers: [],
   gatewayHandlers: {},
@@ -85,6 +90,7 @@ const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry =>
   httpRoutes: [],
   cliRegistrars: [],
   services: [],
+  commands: [],
   diagnostics: [],
 });
 

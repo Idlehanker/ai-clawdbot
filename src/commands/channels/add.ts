@@ -150,7 +150,7 @@ export async function channelsAddCommand(
     });
     nextConfig = result.cfg;
     if (!result.installed) return;
-    reloadOnboardingPluginRegistry({ cfg: nextConfig, runtime, workspaceDir });
+    await reloadOnboardingPluginRegistry({ cfg: nextConfig, runtime, workspaceDir });
     channel = normalizeChannelId(catalogEntry.id) ?? (catalogEntry.id as ChannelId);
   }
 

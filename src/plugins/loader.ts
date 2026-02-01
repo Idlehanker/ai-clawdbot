@@ -161,7 +161,9 @@ function pushDiagnostics(diagnostics: PluginDiagnostic[], append: PluginDiagnost
   diagnostics.push(...append);
 }
 
-export function loadClawdbotPlugins(options: PluginLoadOptions = {}): PluginRegistry {
+export async function loadClawdbotPlugins(
+  options: PluginLoadOptions = {},
+): Promise<PluginRegistry> {
   const cfg = options.config ?? {};
   const logger = options.logger ?? defaultLogger();
   const validateOnly = options.mode === "validate";
@@ -284,7 +286,7 @@ export function loadClawdbotPlugins(options: PluginLoadOptions = {}): PluginRegi
 
     let mod: ClawdbotPluginModule | null = null;
     try {
-      mod = jiti(candidate.source) as ClawdbotPluginModule;
+      mod = (await jiti.import(candidate.source)) as ClawdbotPluginModule;
     } catch (err) {
       logger.error(`[plugins] ${record.id} failed to load from ${record.source}: ${String(err)}`);
       record.status = "error";

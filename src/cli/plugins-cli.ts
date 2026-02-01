@@ -66,11 +66,11 @@ function formatPluginLine(plugin: PluginRecord, verbose = false): string {
   return parts.join("\n");
 }
 
-function applySlotSelectionForPlugin(
+async function applySlotSelectionForPlugin(
   config: ClawdbotConfig,
   pluginId: string,
-): { config: ClawdbotConfig; warnings: string[] } {
-  const report = buildPluginStatusReport({ config });
+): Promise<{ config: ClawdbotConfig; warnings: string[] }> {
+  const report = await buildPluginStatusReport({ config });
   const plugin = report.plugins.find((entry) => entry.id === pluginId);
   if (!plugin) {
     return { config, warnings: [] };
@@ -107,8 +107,8 @@ export function registerPluginsCli(program: Command) {
     .option("--json", "Print JSON")
     .option("--enabled", "Only show enabled plugins", false)
     .option("--verbose", "Show detailed entries", false)
-    .action((opts: PluginsListOptions) => {
-      const report = buildPluginStatusReport();
+    .action(async (opts: PluginsListOptions) => {
+      const report = await buildPluginStatusReport();
       const list = opts.enabled
         ? report.plugins.filter((p) => p.status === "loaded")
         : report.plugins;
@@ -180,8 +180,8 @@ export function registerPluginsCli(program: Command) {
     .description("Show plugin details")
     .argument("<id>", "Plugin id")
     .option("--json", "Print JSON")
-    .action((id: string, opts: PluginInfoOptions) => {
-      const report = buildPluginStatusReport();
+    .action(async (id: string, opts: PluginInfoOptions) => {
+      const report = await buildPluginStatusReport();
       const plugin = report.plugins.find((p) => p.id === id || p.name === id);
       if (!plugin) {
         defaultRuntime.error(`Plugin not found: ${id}`);
@@ -259,7 +259,7 @@ export function registerPluginsCli(program: Command) {
           },
         },
       };
-      const slotResult = applySlotSelectionForPlugin(next, id);
+      const slotResult = await applySlotSelectionForPlugin(next, id);
       next = slotResult.config;
       await writeConfigFile(next);
       logSlotWarnings(slotResult.warnings);
@@ -332,7 +332,7 @@ export function registerPluginsCli(program: Command) {
             installPath: resolved,
             version: probe.version,
           });
-          const slotResult = applySlotSelectionForPlugin(next, probe.pluginId);
+          const slotResult = await applySlotSelectionForPlugin(next, probe.pluginId);
           next = slotResult.config;
           await writeConfigFile(next);
           logSlotWarnings(slotResult.warnings);
@@ -374,7 +374,7 @@ export function registerPluginsCli(program: Command) {
           installPath: result.targetDir,
           version: result.version,
         });
-        const slotResult = applySlotSelectionForPlugin(next, result.pluginId);
+        const slotResult = await applySlotSelectionForPlugin(next, result.pluginId);
         next = slotResult.config;
         await writeConfigFile(next);
         logSlotWarnings(slotResult.warnings);
@@ -437,7 +437,7 @@ export function registerPluginsCli(program: Command) {
         installPath: result.targetDir,
         version: result.version,
       });
-      const slotResult = applySlotSelectionForPlugin(next, result.pluginId);
+      const slotResult = await applySlotSelectionForPlugin(next, result.pluginId);
       next = slotResult.config;
       await writeConfigFile(next);
       logSlotWarnings(slotResult.warnings);
@@ -496,8 +496,8 @@ export function registerPluginsCli(program: Command) {
   plugins
     .command("doctor")
     .description("Report plugin load issues")
-    .action(() => {
-      const report = buildPluginStatusReport();
+    .action(async () => {
+      const report = await buildPluginStatusReport();
       const errors = report.plugins.filter((p) => p.status === "error");
       const diags = report.diagnostics.filter((d) => d.level === "error");
 

@@ -2,7 +2,7 @@ import type { loadConfig } from "../config/config.js";
 import { loadClawdbotPlugins } from "../plugins/loader.js";
 import type { GatewayRequestHandler } from "./server-methods/types.js";
 
-export function loadGatewayPlugins(params: {
+export async function loadGatewayPlugins(params: {
   cfg: ReturnType<typeof loadConfig>;
   workspaceDir: string;
   log: {
@@ -14,7 +14,7 @@ export function loadGatewayPlugins(params: {
   coreGatewayHandlers: Record<string, GatewayRequestHandler>;
   baseMethods: string[];
 }) {
-  const pluginRegistry = loadClawdbotPlugins({
+  const pluginRegistry = await loadClawdbotPlugins({
     config: params.cfg,
     workspaceDir: params.workspaceDir,
     logger: {

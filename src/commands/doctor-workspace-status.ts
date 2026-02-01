@@ -5,7 +5,7 @@ import { loadClawdbotPlugins } from "../plugins/loader.js";
 import { note } from "../terminal/note.js";
 import { detectLegacyWorkspaceDirs, formatLegacyWorkspaceWarning } from "./doctor-workspace.js";
 
-export function noteWorkspaceStatus(cfg: ClawdbotConfig) {
+export async function noteWorkspaceStatus(cfg: ClawdbotConfig) {
   const workspaceDir = resolveAgentWorkspaceDir(cfg, resolveDefaultAgentId(cfg));
   const legacyWorkspace = detectLegacyWorkspaceDirs({ workspaceDir });
   if (legacyWorkspace.legacyDirs.length > 0) {
@@ -25,7 +25,7 @@ export function noteWorkspaceStatus(cfg: ClawdbotConfig) {
     "Skills status",
   );
 
-  const pluginRegistry = loadClawdbotPlugins({
+  const pluginRegistry = await loadClawdbotPlugins({
     config: cfg,
     workspaceDir,
     logger: {
