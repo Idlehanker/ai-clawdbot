@@ -91,6 +91,7 @@ export async function createGatewayRuntimeState(params: {
     }
   }
 
+  // Create handlers for channels
   const handleHooksRequest = createGatewayHooksRequestHandler({
     deps: params.deps,
     getHooksConfig: params.hooksConfig,
